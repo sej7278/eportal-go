@@ -9,13 +9,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
 // global variables
-var api_username = "api-user"
-var api_password = "password123"
-var eportal_url = "https://eportal.devnotprod.com"
+var api_username string
+var api_password string
+var eportal_url string
 
 // endpoint handlers
 func listServers() {
@@ -84,6 +85,41 @@ func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Usage: eportal-go --query=<endpoint>")
 		os.Exit(1)
+	}
+
+	// find user home directory
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Cannot find $HOME")
+		os.Exit(1)
+	}
+
+	// read credentials file
+	content, err := os.ReadFile(home + "/.eportal.ini")
+	if err != nil {
+		fmt.Println("Please create an ~/.eportal.ini credentials file")
+		os.Exit(1)
+	}
+
+	// split creds file on newline
+	lines := strings.Split(string(content), "\n")
+	for i := 0; i < 3; i++ {
+		// remove whitespace around equals sign
+		lines[i] = strings.ReplaceAll(lines[i], " ", "")
+
+		// split into key,value pairs
+		line := strings.Split(lines[i], "=")
+		switch line[0] {
+		case "username":
+			api_username = line[1]
+		case "password":
+			api_password = line[1]
+		case "url":
+			eportal_url = line[1]
+		default:
+			fmt.Println("Unable to parse ~/.eportal.ini")
+			os.Exit(1)
+		}
 	}
 
 	// call handlers for valid endpoints
