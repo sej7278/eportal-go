@@ -88,16 +88,17 @@ func listKeys() {
 	json.Unmarshal([]byte(body), &keys)
 
 	// loop through the result array
+	fmt.Println("KEYS:")
 	for _, result := range keys.Result {
-		fmt.Println("Feed:", result.Feed)
-		fmt.Println("Key:", result.Key)
-		fmt.Println("Description:", result.Description)
-		fmt.Println("Limit:", result.Limit)
-		fmt.Println("Products:")
+		fmt.Println("  Feed:", result.Feed)
+		fmt.Println("  Key:", result.Key)
+		fmt.Println("  Description:", result.Description)
+		fmt.Println("  Limit:", result.Limit)
+		fmt.Println("  Products:")
 
 		// loop through the products array
 		for _, product := range result.Products {
-			fmt.Println("  *", product)
+			fmt.Println("    *", product)
 		}
 
 		// newline before next result
@@ -122,10 +123,26 @@ func listFeeds() {
 			Name        string `json:"name"`
 		} `json:"result"`
 	}
+
+	// decode the json to a struct
+	var feeds Feeds
+	json.Unmarshal([]byte(body), &feeds)
+
+	// loop through the result array
+	fmt.Println("FEEDS:")
+	for _, result := range feeds.Result {
+		fmt.Println("  Name:", result.Name)
+		fmt.Println("  Auto:", result.Auto)
+		fmt.Println("  Channel:", result.Channel)
+		fmt.Println("  DeployAfter:", result.DeployAfter)
+
+		// newline before next result
+		fmt.Println()
+	}
 }
 
 func listPatchsets() {
-	var body string = setupRequest(eportal_url + "/admin/api/patchsets")
+	var body string = setupRequest(eportal_url + "/admin/api/patchsets/?feed=main&product=kernel")
 
 	// output raw json
 	if jsonarg {
@@ -139,6 +156,19 @@ func listPatchsets() {
 			Status   string `json:"status"`
 		} `json:"result"`
 	}
+
+	// decode the json to a struct
+	var patchsets Patchsets
+	json.Unmarshal([]byte(body), &patchsets)
+
+	// loop through the result array
+	fmt.Println("PATCHSETS (feed=main, product=kernel):")
+	for _, result := range patchsets.Result {
+		fmt.Printf("  %v (%v)\n", result.Patchset, result.Status)
+	}
+
+	// newline before next result
+	fmt.Println()
 }
 
 func listUsers() {
@@ -152,12 +182,38 @@ func listUsers() {
 
 	type Users struct {
 		Result []struct {
-			Description any    `json:"description"`
+			Description string `json:"description"`
 			ID          int    `json:"id"`
 			Readonly    bool   `json:"readonly"`
 			Username    string `json:"username"`
 		} `json:"result"`
 	}
+
+	// decode the json to a struct
+	var users Users
+	json.Unmarshal([]byte(body), &users)
+
+	// loop through the result array
+	var readonly, description string
+	fmt.Println("USERS:")
+	for _, result := range users.Result {
+		// handle readonly users
+		readonly = ""
+		if result.Readonly {
+			readonly = "(readonly)"
+		}
+
+		// handle empty descriptions
+		description = ""
+		if result.Description != "" {
+			description = ", " + result.Description
+		}
+
+		fmt.Printf("  %v: %v%v %v\n", result.ID, result.Username, description, readonly)
+	}
+
+	// newline before next result
+	fmt.Println()
 }
 
 func loadCreds() {
