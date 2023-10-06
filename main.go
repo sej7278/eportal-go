@@ -3,6 +3,7 @@ package main
 
 // import modules
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -22,26 +23,151 @@ var eportal_url string
 func listServers() {
 	var body string = setupRequest(eportal_url + "/admin/api/servers")
 	fmt.Print(body)
+
+	type Servers struct {
+		Count  int `json:"count"`
+		Limit  int `json:"limit"`
+		Offset int `json:"offset"`
+		Result []struct {
+			Checkin       any    `json:"checkin"`
+			Distro        any    `json:"distro"`
+			DistroVersion any    `json:"distro_version"`
+			Euname        any    `json:"euname"`
+			Feed          string `json:"feed"`
+			Hostname      string `json:"hostname"`
+			ID            string `json:"id"`
+			IP            string `json:"ip"`
+			KcareVersion  any    `json:"kcare_version"`
+			KernelID      any    `json:"kernel_id"`
+			Key           string `json:"key"`
+			Machine       any    `json:"machine"`
+			PatchLevel    any    `json:"patch_level"`
+			PatchType     any    `json:"patch_type"`
+			Patchset      any    `json:"patchset"`
+			Processor     any    `json:"processor"`
+			Registered    string `json:"registered"`
+			Release       any    `json:"release"`
+			Tags          any    `json:"tags"`
+			Updated       any    `json:"updated"`
+			Uptime        any    `json:"uptime"`
+			Version       any    `json:"version"`
+			Virt          any    `json:"virt"`
+		} `json:"result"`
+	}
 }
 
 func listKeys() {
+	// make api request
 	var body string = setupRequest(eportal_url + "/admin/api/keys")
-	fmt.Print(body)
+
+	// define struct
+	type Keys struct {
+		Result []struct {
+			Feed        string   `json:"feed"`
+			Key         string   `json:"key"`
+			Description string   `json:"note"`
+			Products    []string `json:"products"`
+			Limit       int      `json:"server_limit"`
+		} `json:"result"`
+	}
+
+	// decode the json to a struct
+	var keys Keys
+	json.Unmarshal([]byte(body), &keys)
+
+	// loop through the result array
+	for _, result := range keys.Result {
+		fmt.Println("Feed:", result.Feed)
+		fmt.Println("Key:", result.Key)
+		fmt.Println("Description:", result.Description)
+		fmt.Println("Limit:", result.Limit)
+		fmt.Println("Products:")
+
+		// loop through the products array
+		for _, product := range result.Products {
+			fmt.Println("  *", product)
+		}
+
+		// newline before next result
+		fmt.Println()
+	}
 }
 
 func listFeeds() {
 	var body string = setupRequest(eportal_url + "/admin/api/feeds")
 	fmt.Print(body)
+
+	type Feeds struct {
+		Result []struct {
+			Auto        bool   `json:"auto"`
+			Channel     string `json:"channel"`
+			DeployAfter int    `json:"deploy_after"`
+			Name        string `json:"name"`
+		} `json:"result"`
+	}
 }
 
 func listPatchsets() {
 	var body string = setupRequest(eportal_url + "/admin/api/patchsets")
 	fmt.Print(body)
+
+	type Patchsets struct {
+		Result []struct {
+			Patchset string `json:"patchset"`
+			Status   string `json:"status"`
+		} `json:"result"`
+	}
 }
 
 func listUsers() {
 	var body string = setupRequest(eportal_url + "/admin/api/users")
 	fmt.Print(body)
+
+	type Users struct {
+		Result []struct {
+			Description any    `json:"description"`
+			ID          int    `json:"id"`
+			Readonly    bool   `json:"readonly"`
+			Username    string `json:"username"`
+		} `json:"result"`
+	}
+}
+
+func loadCreds() {
+	// find user home directory
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Cannot find $HOME")
+		os.Exit(1)
+	}
+
+	// read credentials file
+	content, err := os.ReadFile(home + "/.eportal.ini")
+	if err != nil {
+		fmt.Println("Please create an ~/.eportal.ini credentials file")
+		os.Exit(1)
+	}
+
+	// split creds file on newline
+	lines := strings.Split(string(content), "\n")
+	for i := 0; i < 3; i++ {
+		// remove whitespace around equals sign
+		lines[i] = strings.ReplaceAll(lines[i], " ", "")
+
+		// split into key,value pairs
+		line := strings.Split(lines[i], "=")
+		switch line[0] {
+		case "username":
+			api_username = line[1]
+		case "password":
+			api_password = line[1]
+		case "url":
+			eportal_url = line[1]
+		default:
+			fmt.Println("Unable to parse ~/.eportal.ini")
+			os.Exit(1)
+		}
+	}
 }
 
 // api request wrapper
@@ -87,40 +213,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// find user home directory
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Cannot find $HOME")
-		os.Exit(1)
-	}
-
-	// read credentials file
-	content, err := os.ReadFile(home + "/.eportal.ini")
-	if err != nil {
-		fmt.Println("Please create an ~/.eportal.ini credentials file")
-		os.Exit(1)
-	}
-
-	// split creds file on newline
-	lines := strings.Split(string(content), "\n")
-	for i := 0; i < 3; i++ {
-		// remove whitespace around equals sign
-		lines[i] = strings.ReplaceAll(lines[i], " ", "")
-
-		// split into key,value pairs
-		line := strings.Split(lines[i], "=")
-		switch line[0] {
-		case "username":
-			api_username = line[1]
-		case "password":
-			api_password = line[1]
-		case "url":
-			eportal_url = line[1]
-		default:
-			fmt.Println("Unable to parse ~/.eportal.ini")
-			os.Exit(1)
-		}
-	}
+	// load credentials from file
+	loadCreds()
 
 	// call handlers for valid endpoints
 	switch query {
