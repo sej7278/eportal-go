@@ -18,6 +18,7 @@ import (
 var api_username string
 var api_password string
 var eportal_url string
+var jsonarg bool
 
 // endpoint handlers
 func listServers() {
@@ -59,6 +60,11 @@ func listServers() {
 func listKeys() {
 	// make api request
 	var body string = setupRequest(eportal_url + "/admin/api/keys")
+
+	if jsonarg {
+		fmt.Print(body)
+		os.Exit(0)
+	}
 
 	// define struct
 	type Keys struct {
@@ -205,11 +211,12 @@ func main() {
 	// parse cli arguments
 	var query string
 	flag.StringVar(&query, "query", "", "endpoint")
+	flag.BoolVar(&jsonarg, "json", false, "--json")
 	flag.Parse()
 
-	// check we have one argument
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: eportal-go --query=<endpoint>")
+	// check we have 1-2 arguments
+	if len(os.Args) < 2 || len(os.Args) > 3 {
+		fmt.Println("Usage: eportal-go --query=<endpoint> [--json]")
 		os.Exit(1)
 	}
 
