@@ -23,7 +23,12 @@ var jsonarg bool
 // endpoint handlers
 func listServers() {
 	var body string = setupRequest(eportal_url + "/admin/api/servers")
-	fmt.Print(body)
+
+	// output raw json
+	if jsonarg {
+		fmt.Println(body)
+		return
+	}
 
 	type Servers struct {
 		Count  int `json:"count"`
@@ -61,9 +66,10 @@ func listKeys() {
 	// make api request
 	var body string = setupRequest(eportal_url + "/admin/api/keys")
 
+	// output raw json
 	if jsonarg {
-		fmt.Print(body)
-		os.Exit(0)
+		fmt.Println(body)
+		return
 	}
 
 	// define struct
@@ -101,7 +107,12 @@ func listKeys() {
 
 func listFeeds() {
 	var body string = setupRequest(eportal_url + "/admin/api/feeds")
-	fmt.Print(body)
+
+	// output raw json
+	if jsonarg {
+		fmt.Println(body)
+		return
+	}
 
 	type Feeds struct {
 		Result []struct {
@@ -115,7 +126,12 @@ func listFeeds() {
 
 func listPatchsets() {
 	var body string = setupRequest(eportal_url + "/admin/api/patchsets")
-	fmt.Print(body)
+
+	// output raw json
+	if jsonarg {
+		fmt.Println(body)
+		return
+	}
 
 	type Patchsets struct {
 		Result []struct {
@@ -127,7 +143,12 @@ func listPatchsets() {
 
 func listUsers() {
 	var body string = setupRequest(eportal_url + "/admin/api/users")
-	fmt.Print(body)
+
+	// output raw json
+	if jsonarg {
+		fmt.Println(body)
+		return
+	}
 
 	type Users struct {
 		Result []struct {
@@ -141,17 +162,12 @@ func listUsers() {
 
 func loadCreds() {
 	// find user home directory
-	home, err := os.UserHomeDir()
-	if err != nil {
-		fmt.Println("Cannot find $HOME")
-		os.Exit(1)
-	}
+	home, _ := os.UserHomeDir()
 
 	// read credentials file
 	content, err := os.ReadFile(home + "/.eportal.ini")
 	if err != nil {
-		fmt.Println("Please create an ~/.eportal.ini credentials file")
-		os.Exit(1)
+		log.Fatal(err)
 	}
 
 	// split creds file on newline
@@ -170,8 +186,7 @@ func loadCreds() {
 		case "url":
 			eportal_url = line[1]
 		default:
-			fmt.Println("Unable to parse ~/.eportal.ini")
-			os.Exit(1)
+			log.Fatal("Unable to parse ~/.eportal.ini")
 		}
 	}
 }
@@ -209,14 +224,18 @@ func setupRequest(uri string) (body string) {
 
 func main() {
 	// parse cli arguments
-	var query string
-	flag.StringVar(&query, "query", "", "endpoint")
+	var serversarg, keysarg, feedsarg, usersarg, patchsetsarg bool
+	flag.BoolVar(&serversarg, "servers", false, "--servers")
+	flag.BoolVar(&keysarg, "keys", false, "--keys")
+	flag.BoolVar(&feedsarg, "feeds", false, "--feeds")
+	flag.BoolVar(&usersarg, "users", false, "--users")
+	flag.BoolVar(&patchsetsarg, "patchsets", false, "--patchsets")
 	flag.BoolVar(&jsonarg, "json", false, "--json")
 	flag.Parse()
 
-	// check we have 1-2 arguments
-	if len(os.Args) < 2 || len(os.Args) > 3 {
-		fmt.Println("Usage: eportal-go --query=<endpoint> [--json]")
+	// check we have at least 1 argument
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: eportal-go --<servers|keys|feeds|users|patchsets> [--json]")
 		os.Exit(1)
 	}
 
@@ -224,19 +243,23 @@ func main() {
 	loadCreds()
 
 	// call handlers for valid endpoints
-	switch query {
-	case "servers":
+	if serversarg {
 		listServers()
-	case "keys":
+	}
+
+	if keysarg {
 		listKeys()
-	case "feeds":
+	}
+
+	if feedsarg {
 		listFeeds()
-	case "users":
+	}
+
+	if usersarg {
 		listUsers()
-	case "patches", "patchsets":
+	}
+
+	if patchsetsarg {
 		listPatchsets()
-	default:
-		fmt.Println("Please use a valid endpoint e.g. servers, patches, users, feeds or keys")
-		os.Exit(1)
 	}
 }
