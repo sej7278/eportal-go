@@ -245,7 +245,7 @@ func loadCreds() {
 	// read credentials file
 	content, err := os.ReadFile(home + "/.eportal.ini")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Please create an ~/.eportal.ini file with 600 permissions")
 	}
 
 	// split creds file on newline
