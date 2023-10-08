@@ -60,6 +60,28 @@ func listServers() {
 			Virt          any    `json:"virt"`
 		} `json:"result"`
 	}
+
+	// decode the json to a struct
+	var servers Servers
+	json.Unmarshal([]byte(body), &servers)
+
+	// loop through the result array
+	const timefmt = "2006-01-02 15:04:05.000000"
+	fmt.Printf("SERVERS (%d/%d):\n", servers.Count, servers.Limit)
+	for _, result := range servers.Result {
+		fmt.Println("  IP:", result.IP)
+		fmt.Println("  Hostname:", result.Hostname)
+		fmt.Println("  ID:", result.ID)
+		fmt.Println("  Key:", result.Key)
+
+		// convert json string to utc date, then format
+		t, _ := time.Parse(timefmt, result.Registered)
+		f := t.Format(time.RFC822)
+		fmt.Println("  Registration date:", f)
+
+		// newline before next result
+		fmt.Println()
+	}
 }
 
 func listKeys() {
