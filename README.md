@@ -18,10 +18,37 @@ The included Makefile can build various binaries, subject to your go environment
 make clean all
 ```
 
-If you want to return in JSON format, append the `--json` flag and optionally pipe to jq:
+If you want to return in JSON format, append the `--json` flag and optionally pipe to `jq` like so:
 
 ```bash
 eportal-go --users --json | jq
+```
+
+Which returns something like:
+
+```json
+{
+  "result": [
+    {
+      "description": null,
+      "id": 1,
+      "readonly": false,
+      "username": "admin"
+    },
+    {
+      "description": "",
+      "id": 2,
+      "readonly": false,
+      "username": "api"
+    },
+    {
+      "description": "Readonly user",
+      "id": 3,
+      "readonly": true,
+      "username": "user"
+    }
+  ]
+}
 ```
 
 ## Setting up credentials
@@ -50,8 +77,28 @@ As of the current release, eportal-go supports the following queries (API endpoi
 * servers `--servers`
 * feeds `--feeds`
 
-They can be combined e.g.
+They can be combined like so:
 
 ```bash
 eportal-go --users --feeds
+```
+
+Which returns something like:
+
+```text
+FEEDS:
+  Name: main
+  Auto: false
+  Channel: default
+  DeployAfter: 0
+
+  Name: all
+  Auto: false
+  Channel: default
+  DeployAfter: 0
+
+USERS:
+  1: admin
+  2: api
+  3: user, Readonly user (readonly)
 ```
