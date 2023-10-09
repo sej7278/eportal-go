@@ -1,3 +1,7 @@
+$(shell mkdir -p builds)
+
+all: linux-amd64 linux-arm linux-aarch64 macos-intel macos-m2 windows
+
 linux-amd64:
 	GOOS=linux GOARCH=amd64 go build -o builds/eportal-go
 
@@ -18,7 +22,5 @@ windows:
 
 clean:
 	rm -f builds/*
-
-all: linux-amd64 linux-arm linux-aarch64 macos-intel macos-m2 windows
 
 .PHONY: all clean linux-amd64 linux-arm linux-aarch64 macos-intel macos-m2 windows
