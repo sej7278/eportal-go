@@ -58,7 +58,7 @@ They can be combined like so:
 eportal-go --users --feeds
 ```
 
-Which returns something like this is the default "pretty" mode:
+Which returns something like this in the default "pretty" mode:
 
 ```text
 FEEDS:
