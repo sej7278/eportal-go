@@ -26,7 +26,7 @@ eportal-go --users --json | jq
 
 ## Setting up credentials
 
-You should create a ~/eportal.ini file with the following syntax:
+You should create a ~/.eportal.ini file with the following syntax:
 
 ```ini
 username = api
