@@ -18,10 +18,51 @@ import (
 var api_username string
 var api_password string
 var eportal_url string
-var jsonarg bool
+
+type jsonBody struct {
+	Count  int `json:"count"`
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
+	Result []struct {
+		Checkin       any      `json:"checkin"`
+		Distro        any      `json:"distro"`
+		DistroVersion any      `json:"distro_version"`
+		Euname        any      `json:"euname"`
+		Feed          string   `json:"feed"`
+		Hostname      string   `json:"hostname"`
+		ID            any      `json:"id"` // int for users, string for servers
+		IP            string   `json:"ip"`
+		KcareVersion  any      `json:"kcare_version"`
+		KernelID      any      `json:"kernel_id"`
+		Key           string   `json:"key"`
+		Machine       any      `json:"machine"`
+		PatchLevel    any      `json:"patch_level"`
+		PatchType     any      `json:"patch_type"`
+		Patchset      string   `json:"patchset"`
+		Processor     any      `json:"processor"`
+		Registered    string   `json:"registered"`
+		Release       any      `json:"release"`
+		Tags          any      `json:"tags"`
+		Updated       any      `json:"updated"`
+		Uptime        any      `json:"uptime"`
+		Version       any      `json:"version"`
+		Virt          any      `json:"virt"`
+		Note          string   `json:"note"`
+		Description   string   `json:"description"`
+		Products      []string `json:"products"`
+		Limit         int      `json:"server_limit"`
+		Auto          bool     `json:"auto"`
+		Channel       string   `json:"channel"`
+		DeployAfter   int      `json:"deploy_after"`
+		Name          string   `json:"name"`
+		Status        string   `json:"status"`
+		Readonly      bool     `json:"readonly"`
+		Username      string   `json:"username"`
+	} `json:"result"`
+}
 
 // endpoint handlers
-func listServers() {
+func listServers(jsonarg bool) {
 	var body string = setupRequest(eportal_url + "/admin/api/servers")
 
 	// output raw json
@@ -30,39 +71,8 @@ func listServers() {
 		return
 	}
 
-	type Servers struct {
-		Count  int `json:"count"`
-		Limit  int `json:"limit"`
-		Offset int `json:"offset"`
-		Result []struct {
-			Checkin       any    `json:"checkin"`
-			Distro        any    `json:"distro"`
-			DistroVersion any    `json:"distro_version"`
-			Euname        any    `json:"euname"`
-			Feed          string `json:"feed"`
-			Hostname      string `json:"hostname"`
-			ID            string `json:"id"`
-			IP            string `json:"ip"`
-			KcareVersion  any    `json:"kcare_version"`
-			KernelID      any    `json:"kernel_id"`
-			Key           string `json:"key"`
-			Machine       any    `json:"machine"`
-			PatchLevel    any    `json:"patch_level"`
-			PatchType     any    `json:"patch_type"`
-			Patchset      any    `json:"patchset"`
-			Processor     any    `json:"processor"`
-			Registered    string `json:"registered"`
-			Release       any    `json:"release"`
-			Tags          any    `json:"tags"`
-			Updated       any    `json:"updated"`
-			Uptime        any    `json:"uptime"`
-			Version       any    `json:"version"`
-			Virt          any    `json:"virt"`
-		} `json:"result"`
-	}
-
 	// decode the json to a struct
-	var servers Servers
+	var servers jsonBody
 	json.Unmarshal([]byte(body), &servers)
 
 	// loop through the result array
@@ -84,7 +94,7 @@ func listServers() {
 	}
 }
 
-func listKeys() {
+func listKeys(jsonarg bool) {
 	// make api request
 	var body string = setupRequest(eportal_url + "/admin/api/keys")
 
@@ -93,20 +103,8 @@ func listKeys() {
 		fmt.Println(body)
 		return
 	}
-
-	// define struct
-	type Keys struct {
-		Result []struct {
-			Feed        string   `json:"feed"`
-			Key         string   `json:"key"`
-			Description string   `json:"note"`
-			Products    []string `json:"products"`
-			Limit       int      `json:"server_limit"`
-		} `json:"result"`
-	}
-
 	// decode the json to a struct
-	var keys Keys
+	var keys jsonBody
 	json.Unmarshal([]byte(body), &keys)
 
 	// loop through the result array
@@ -114,7 +112,7 @@ func listKeys() {
 	for _, result := range keys.Result {
 		fmt.Println("  Feed:", result.Feed)
 		fmt.Println("  Key:", result.Key)
-		fmt.Println("  Description:", result.Description)
+		fmt.Println("  Description:", result.Note)
 		fmt.Println("  Limit:", result.Limit)
 		fmt.Println("  Products:")
 
@@ -128,7 +126,7 @@ func listKeys() {
 	}
 }
 
-func listFeeds() {
+func listFeeds(jsonarg bool) {
 	var body string = setupRequest(eportal_url + "/admin/api/feeds")
 
 	// output raw json
@@ -137,17 +135,8 @@ func listFeeds() {
 		return
 	}
 
-	type Feeds struct {
-		Result []struct {
-			Auto        bool   `json:"auto"`
-			Channel     string `json:"channel"`
-			DeployAfter int    `json:"deploy_after"`
-			Name        string `json:"name"`
-		} `json:"result"`
-	}
-
 	// decode the json to a struct
-	var feeds Feeds
+	var feeds jsonBody
 	json.Unmarshal([]byte(body), &feeds)
 
 	// loop through the result array
@@ -163,8 +152,8 @@ func listFeeds() {
 	}
 }
 
-func listPatchsets() {
-	var body string = setupRequest(eportal_url + "/admin/api/patchsets/?feed=main&product=kernel")
+func listPatchsets(jsonarg bool) {
+	var body string = setupRequest(eportal_url + "/admin/api/patchsets")
 
 	// output raw json
 	if jsonarg {
@@ -172,15 +161,8 @@ func listPatchsets() {
 		return
 	}
 
-	type Patchsets struct {
-		Result []struct {
-			Patchset string `json:"patchset"`
-			Status   string `json:"status"`
-		} `json:"result"`
-	}
-
 	// decode the json to a struct
-	var patchsets Patchsets
+	var patchsets jsonBody
 	json.Unmarshal([]byte(body), &patchsets)
 
 	// loop through the result array
@@ -193,7 +175,7 @@ func listPatchsets() {
 	fmt.Println()
 }
 
-func listUsers() {
+func listUsers(jsonarg bool) {
 	var body string = setupRequest(eportal_url + "/admin/api/users")
 
 	// output raw json
@@ -202,17 +184,8 @@ func listUsers() {
 		return
 	}
 
-	type Users struct {
-		Result []struct {
-			Description string `json:"description"`
-			ID          int    `json:"id"`
-			Readonly    bool   `json:"readonly"`
-			Username    string `json:"username"`
-		} `json:"result"`
-	}
-
 	// decode the json to a struct
-	var users Users
+	var users jsonBody
 	json.Unmarshal([]byte(body), &users)
 
 	// loop through the result array
@@ -302,7 +275,7 @@ func setupRequest(uri string) (body string) {
 
 func main() {
 	// parse cli arguments
-	var serversarg, keysarg, feedsarg, usersarg, patchsetsarg bool
+	var serversarg, keysarg, feedsarg, usersarg, patchsetsarg, jsonarg bool
 	flag.BoolVar(&serversarg, "servers", false, "--servers")
 	flag.BoolVar(&keysarg, "keys", false, "--keys")
 	flag.BoolVar(&feedsarg, "feeds", false, "--feeds")
@@ -322,22 +295,22 @@ func main() {
 
 	// call handlers for valid endpoints
 	if serversarg {
-		listServers()
+		listServers(jsonarg)
 	}
 
 	if keysarg {
-		listKeys()
+		listKeys(jsonarg)
 	}
 
 	if feedsarg {
-		listFeeds()
+		listFeeds(jsonarg)
 	}
 
 	if usersarg {
-		listUsers()
+		listUsers(jsonarg)
 	}
 
 	if patchsetsarg {
-		listPatchsets()
+		listPatchsets(jsonarg)
 	}
 }
