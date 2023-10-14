@@ -1,26 +1,34 @@
 $(shell mkdir -p builds)
 
-all: linux-amd64 linux-arm linux-aarch64 macos-intel macos-m2 windows
+LDFLAGS=-ldflags "-s -w"
 
-linux-amd64:
-	GOOS=linux GOARCH=amd64 go build -o builds/eportal-go
+all: linux linux-arm linux-aarch64 linux-ppc64le linux-s390x macos-intel macos windows
 
-linux-arm:
-	GOOS=linux GOARCH=arm go build -o builds/eportal-go-arm
+linux: # default linux amd64
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o builds/eportal-go
 
-linux-aarch64:
-	GOOS=linux GOARCH=arm64 go build -o builds/eportal-go-aarch64
+linux-arm: # linux 32-bit armv6 for rpi 0/1/2
+	GOOS=linux GOARCH=arm go build $(LDFLAGS) -o builds/eportal-go-arm
 
-macos-intel:
-	GOOS=darwin GOARCH=amd64 go build -o builds/eportal-go-macos-intel
+linux-aarch64: # linux aarch64 for rpi 3/4/5, graviton, rk3328 etc.
+	GOOS=linux GOARCH=arm64 go build $(LDFLAGS) -o builds/eportal-go-aarch64
 
-macos-m2:
-	GOOS=darwin GOARCH=arm64 go build -o builds/eportal-go-macos-m2
+linux-ppc64le:
+	GOOS=linux GOARCH=ppc64le go build $(LDFLAGS) -o builds/eportal-go-ppc64le
+
+linux-s390x:
+	GOOS=linux GOARCH=s390x go build $(LDFLAGS) -o builds/eportal-go-s390x
+
+macos: # default macos aarch64
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o builds/eportal-go-macos
+
+macos-intel: # legacy macos amd64
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o builds/eportal-go-macos-intel
 
 windows:
-	GOOS=windows GOARCH=amd64 go build -o builds/eportal-go.exe
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o builds/eportal-go.exe
 
 clean:
 	rm -f builds/*
 
-.PHONY: all clean linux-amd64 linux-arm linux-aarch64 macos-intel macos-m2 windows
+.PHONY: all clean
