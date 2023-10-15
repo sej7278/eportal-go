@@ -31,4 +31,4 @@ windows:
 clean:
 	rm -f builds/*
 
-.PHONY: all clean
+.PHONY: all clean linux linux-arm linux-aarch64 linux-ppc64le linux-s390x macos macos-intel windows
