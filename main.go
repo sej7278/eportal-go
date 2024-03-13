@@ -276,7 +276,9 @@ func setupRequest(uri string) (body string) {
 func main() {
 	// parse cli arguments
 	var serversarg, keysarg, feedsarg, usersarg, patchsetsarg, jsonarg bool
+	var unitarg string
 	flag.BoolVar(&serversarg, "servers", false, "--servers")
+	flag.StringVar(&unitarg, "unit", "", "--unit")
 	flag.BoolVar(&keysarg, "keys", false, "--keys")
 	flag.BoolVar(&feedsarg, "feeds", false, "--feeds")
 	flag.BoolVar(&usersarg, "users", false, "--users")
@@ -286,12 +288,17 @@ func main() {
 
 	// check we have at least 1 argument
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: eportal-go --<servers|keys|feeds|users|patchsets> [--json]")
+		fmt.Println("Usage: eportal-go --<servers|keys|feeds|users|patchsets> [--unit=<unit>] [--json]")
 		os.Exit(1)
 	}
 
 	// load credentials from file
 	loadCreds()
+
+	// append unit to eportal url
+	if unitarg != "" {
+		eportal_url = eportal_url + "/" + unitarg
+	}
 
 	// call handlers for valid endpoints
 	if serversarg {
