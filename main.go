@@ -286,8 +286,8 @@ func main() {
 	flag.BoolVar(&jsonarg, "json", false, "--json")
 	flag.Parse()
 
-	// check we have at least 1 argument
-	if len(os.Args) < 2 {
+	// check we have at least one endpoint argument
+	if !serversarg && !keysarg && !feedsarg && !usersarg && !patchsetsarg {
 		fmt.Println("Usage: eportal-go --<servers|keys|feeds|users|patchsets> [--unit=<unit>] [--json]")
 		os.Exit(1)
 	}
